@@ -15,7 +15,7 @@
         body {
             /* Remove default margin and padding from body */
             margin: 0;
-            padding: 0; /* Removed previous 1rem padding from body */
+            padding: 0;
             /* Ensure body takes full height and width of html */
             height: 100%;
             width: 100%;
@@ -71,15 +71,39 @@
 
         <!-- Toll Buttons -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-            <!-- Toll amount buttons -->
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-0.50">-$0.50</button>
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-0.55">-$0.55</button>
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-0.60">-$0.60</button>
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-0.75">-$0.75</button>
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-0.90">-$0.90</button>
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-1.25">-$1.25</button>
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-1.40">-$1.40</button>
-            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50" data-amount="-1.50">-$1.50</button>
+            <!-- Toll amount buttons with labels -->
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.50">
+                <span class="text-xs font-normal opacity-75 mb-1">CDE/HIP</span>
+                <span>-$0.50</span>
+            </button>
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.55">
+                <span class="text-xs font-normal opacity-75 mb-1">CDR-MPTO</span>
+                <span>-$0.55</span>
+            </button>
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.60">
+                <span class="text-xs font-normal opacity-75 mb-1">ATP-PAI</span>
+                <span>-$0.60</span>
+            </button>
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.75">
+                <span class="text-xs font-normal opacity-75 mb-1">CDR/MTPK</span>
+                <span>-$0.75</span>
+            </button>
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.90">
+                <span class="text-xs font-normal opacity-75 mb-1">MSO</span>
+                <span>-$0.90</span>
+            </button>
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.25">
+                <span class="text-xs font-normal opacity-75 mb-1">ATP/LAJ/CDR</span>
+                <span>-$1.25</span>
+            </button>
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.40">
+                <span class="text-xs font-normal opacity-75 mb-1">PAI</span>
+                <span>-$1.40</span>
+            </button>
+            <button class="btn-toll bg-indigo-600 text-white py-4 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.50">
+                <span class="text-xs font-normal opacity-75 mb-1">TIN</span>
+                <span>-$1.50</span>
+            </button>
         </div>
 
         <!-- Add Balance Button -->
@@ -90,66 +114,48 @@
 
     <script>
         // Initialize balance from local storage or default to 0.00
-        // Using `parseFloat` to ensure the stored value is a number
         let balance = parseFloat(localStorage.getItem('tollBalance')) || 0.00;
         const balanceDisplay = document.getElementById('balance-display');
         const addBalanceBtn = document.getElementById('add-balance-btn');
-        const tollButtons = document.querySelectorAll('.btn-toll'); // Select all toll buttons
-        const manualBalanceInput = document.getElementById('manual-balance-input'); // Manual input field
-        const setBalanceBtn = document.getElementById('set-balance-btn'); // Set Balance button
+        const tollButtons = document.querySelectorAll('.btn-toll');
 
-        /**
-         * Updates the displayed balance and saves it to local storage.
-         */
         function updateBalanceDisplay() {
-            // Format balance to two decimal places and display with a dollar sign
             balanceDisplay.textContent = `$${balance.toFixed(2)}`;
-            // Save the current balance to local storage for persistence
             localStorage.setItem('tollBalance', balance.toFixed(2));
         }
 
-        // Initialize display on page load
         updateBalanceDisplay();
 
-        /**
-         * Event listener for the "Add $20.00" button.
-         * Adds 20.00 to the balance and updates the display.
-         */
         addBalanceBtn.addEventListener('click', () => {
             balance += 20.00;
             updateBalanceDisplay();
         });
 
-        /**
-         * Loop through each toll button and add a click event listener.
-         * When a toll button is clicked, it subtracts its associated amount from the balance.
-         */
         tollButtons.forEach(button => {
             button.addEventListener('click', (event) => {
-                // Get the amount from the data-amount attribute and convert it to a float
-                const amount = parseFloat(event.target.dataset.amount);
-                balance += amount; // Add because the amount is already negative
-                updateBalanceDisplay();
+                // To ensure the amount is correctly parsed even if the click is on the span inside the button
+                let targetButton = event.target.closest('.btn-toll');
+                if (targetButton) {
+                    const amount = parseFloat(targetButton.dataset.amount);
+                    balance += amount;
+                    updateBalanceDisplay();
+                }
             });
         });
 
-        /**
-         * Event listener for the "Set Balance" button.
-         * Reads the value from the input field, validates it, and sets the balance.
-         */
+        const manualBalanceInput = document.getElementById('manual-balance-input');
+        const setBalanceBtn = document.getElementById('set-balance-btn');
+
         setBalanceBtn.addEventListener('click', () => {
             const inputValue = manualBalanceInput.value;
             const newBalance = parseFloat(inputValue);
 
-            // Validate if the input is a valid number
             if (!isNaN(newBalance)) {
                 balance = newBalance;
                 updateBalanceDisplay();
-                manualBalanceInput.value = ''; // Clear the input field after setting
+                manualBalanceInput.value = '';
             } else {
-                // Optionally, provide user feedback for invalid input
                 console.error("Invalid balance entered. Please enter a valid number.");
-                // In a real application, you might show a small message on the UI
             }
         });
     </script>
