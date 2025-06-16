@@ -26,7 +26,6 @@
             align-items: center; /* Center content vertically */
             justify-content: center; /* Center content horizontally */
             font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Prevent scrollbars if content slightly overflows */
             box-sizing: border-box; /* Include padding and border in the element's total width and height */
         }
         /* Custom styles for button hover effects and active states */
@@ -41,12 +40,18 @@
             transform: translateY(0);
             box-shadow: none;
         }
+        /* Scrollable transaction history */
+        #transaction-history {
+            max-height: 250px; /* Limit height for scrollability on mobile */
+            overflow-y: auto; /* Enable vertical scrolling */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
     </style>
 </head>
 <body>
-    <div class="bg-gray-800 p-4 sm:p-8 rounded-xl shadow-2xl w-full max-w-md mx-auto border border-gray-700">
+    <div class="bg-gray-800 p-4 sm:p-8 rounded-xl shadow-2xl w-full max-w-md mx-auto border border-gray-700 max-h-[95vh] flex flex-col">
         <!-- Balance Display -->
-        <div class="text-center mb-8">
+        <div class="text-center mb-6">
             <h1 class="text-2xl font-semibold text-gray-200 mb-2">Current Balance:</h1>
             <p id="balance-display" class="text-6xl font-extrabold text-blue-400 tracking-tight">$0.00</p>
         </div>
@@ -107,52 +112,174 @@
         </div>
 
         <!-- Add Balance Button -->
-        <button id="add-balance-btn" class="btn-add w-full bg-green-600 text-white py-4 rounded-xl text-2xl font-bold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50">
+        <button id="add-balance-btn" class="btn-add w-full bg-green-600 text-white py-4 rounded-xl text-2xl font-bold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 mb-6">
             Add $20.00
         </button>
+
+        <!-- Transaction History Section -->
+        <h2 class="text-xl font-semibold text-gray-200 mb-4 text-center">Transaction History</h2>
+        <div id="transaction-history" class="bg-gray-700 p-4 rounded-lg border border-gray-600 flex-grow">
+            <!-- Transaction items will be dynamically added here -->
+            <p id="no-transactions-message" class="text-gray-400 text-center text-sm">No transactions yet.</p>
+        </div>
     </div>
 
     <script>
-        // Initialize balance from local storage or default to 0.00
+        // Initialize balance and transactions from local storage
         let balance = parseFloat(localStorage.getItem('tollBalance')) || 0.00;
+        // Parse stored transactions or initialize an empty array
+        let transactions = JSON.parse(localStorage.getItem('tollTransactions')) || [];
+
         const balanceDisplay = document.getElementById('balance-display');
         const addBalanceBtn = document.getElementById('add-balance-btn');
         const tollButtons = document.querySelectorAll('.btn-toll');
+        const manualBalanceInput = document.getElementById('manual-balance-input');
+        const setBalanceBtn = document.getElementById('set-balance-btn');
+        const transactionHistoryDiv = document.getElementById('transaction-history');
+        const noTransactionsMessage = document.getElementById('no-transactions-message');
 
-        function updateBalanceDisplay() {
+
+        /**
+         * Updates the displayed balance and saves it to local storage.
+         * Also calls functions to record and display transaction history.
+         */
+        function updateBalanceDisplay(amountChange = 0, type = 'toll') {
             balanceDisplay.textContent = `$${balance.toFixed(2)}`;
             localStorage.setItem('tollBalance', balance.toFixed(2));
+            addTransaction(amountChange, balance, type); // Record the transaction
+            renderTransactionHistory(); // Re-render history after update
         }
 
-        updateBalanceDisplay();
+        /**
+         * Adds a new transaction to the history.
+         * @param {number} amount - The amount added or subtracted in this transaction.
+         * @param {number} balanceAfter - The balance after this transaction.
+         * @param {string} type - 'toll', 'add', or 'set' for categorization.
+         */
+        function addTransaction(amount, balanceAfter, type) {
+            // Only add a transaction if there was an actual change or it's a 'set' operation
+            if (amount !== 0 || type === 'set') {
+                const now = new Date();
+                transactions.unshift({ // Add to the beginning for reverse chronological order
+                    id: Date.now() + Math.random(), // Unique ID for deletion
+                    timestamp: now.toISOString(), // ISO string for easy storage and parsing
+                    amount: amount,
+                    balanceAfter: balanceAfter,
+                    type: type // Store type for display if needed later
+                });
+                // Keep only the latest 50 transactions to prevent history from getting too long
+                if (transactions.length > 50) {
+                    transactions.pop();
+                }
+                localStorage.setItem('tollTransactions', JSON.stringify(transactions));
+            }
+        }
 
+        /**
+         * Renders the transaction history list in the UI.
+         */
+        function renderTransactionHistory() {
+            transactionHistoryDiv.innerHTML = ''; // Clear existing entries
+
+            if (transactions.length === 0) {
+                noTransactionsMessage.style.display = 'block'; // Show "No transactions yet."
+                transactionHistoryDiv.appendChild(noTransactionsMessage);
+                return;
+            } else {
+                 noTransactionsMessage.style.display = 'none'; // Hide if there are transactions
+            }
+
+
+            transactions.forEach((transaction, index) => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'flex items-center justify-between bg-gray-600 p-2 rounded-md mb-2 last:mb-0 text-sm';
+                transactionItem.setAttribute('data-id', transaction.id); // Set data-id for deletion
+
+                const date = new Date(transaction.timestamp);
+                const dateTime = date.toLocaleString('en-US', {
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+
+                const amountSign = transaction.amount < 0 ? '-' : '+';
+                const amountColor = transaction.amount < 0 ? 'text-red-300' : 'text-green-300';
+                const formattedAmount = `${amountSign}$${Math.abs(transaction.amount).toFixed(2)}`;
+                const formattedBalance = `$${transaction.balanceAfter.toFixed(2)}`;
+
+                transactionItem.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="text-gray-300">${dateTime}</div>
+                        <div class="text-gray-200 ${amountColor}">${formattedAmount} <span class="text-gray-400">-> Balance: ${formattedBalance}</span></div>
+                    </div>
+                    <button class="delete-transaction-btn bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded ml-2">Delete</button>
+                `;
+                transactionHistoryDiv.appendChild(transactionItem);
+            });
+
+            // Attach event listeners to new delete buttons
+            document.querySelectorAll('.delete-transaction-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    // Find the parent transaction item to get its ID
+                    const transactionElement = event.target.closest('[data-id]');
+                    if (transactionElement) {
+                        const transactionIdToDelete = parseFloat(transactionElement.dataset.id);
+                        deleteTransaction(transactionIdToDelete);
+                    }
+                });
+            });
+        }
+
+        /**
+         * Deletes a transaction by its ID and re-renders the history.
+         * NOTE: Deleting a transaction from history DOES NOT retroactively change the current balance.
+         * It only removes the log entry. If you need to re-calculate the balance,
+         * a more complex system (e.g., replaying all transactions from a base) would be needed.
+         * @param {number} id - The unique ID of the transaction to delete.
+         */
+        function deleteTransaction(id) {
+            const initialLength = transactions.length;
+            transactions = transactions.filter(t => t.id !== id);
+
+            if (transactions.length < initialLength) { // If a transaction was actually removed
+                localStorage.setItem('tollTransactions', JSON.stringify(transactions));
+                renderTransactionHistory(); // Re-render the updated history
+                // Optionally, if the deleted item was the *most recent* one,
+                // you might want to recalculate the current balance based on the new last transaction.
+                // For simplicity, we're not doing a full recalculation here.
+            }
+        }
+
+        // Initialize display and history on page load
+        updateBalanceDisplay(0, 'initial'); // 'initial' type to ensure first state is logged if needed
+
+        // Event listeners for balance changes
         addBalanceBtn.addEventListener('click', () => {
-            balance += 20.00;
-            updateBalanceDisplay();
+            const amount = 20.00;
+            balance += amount;
+            updateBalanceDisplay(amount, 'add');
         });
 
         tollButtons.forEach(button => {
             button.addEventListener('click', (event) => {
-                // To ensure the amount is correctly parsed even if the click is on the span inside the button
                 let targetButton = event.target.closest('.btn-toll');
                 if (targetButton) {
                     const amount = parseFloat(targetButton.dataset.amount);
                     balance += amount;
-                    updateBalanceDisplay();
+                    updateBalanceDisplay(amount, 'toll');
                 }
             });
         });
-
-        const manualBalanceInput = document.getElementById('manual-balance-input');
-        const setBalanceBtn = document.getElementById('set-balance-btn');
 
         setBalanceBtn.addEventListener('click', () => {
             const inputValue = manualBalanceInput.value;
             const newBalance = parseFloat(inputValue);
 
             if (!isNaN(newBalance)) {
+                const oldBalance = balance;
                 balance = newBalance;
-                updateBalanceDisplay();
+                // Calculate the 'amount' for the transaction as the difference
+                const amountChange = newBalance - oldBalance;
+                updateBalanceDisplay(amountChange, 'set');
                 manualBalanceInput.value = '';
             } else {
                 console.error("Invalid balance entered. Please enter a valid number.");
