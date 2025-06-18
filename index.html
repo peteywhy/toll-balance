@@ -347,7 +347,9 @@
         });
 
         tollButtons.forEach(button => {
-            button.addEventList('.btn-toll');
+            // Corrected syntax for addEventListener
+            button.addEventListener('click', (event) => {
+                let targetButton = event.target.closest('.btn-toll');
                 if (targetButton) {
                     const amount = parseFloat(targetButton.dataset.amount);
                     balance += amount;
@@ -361,8 +363,7 @@
             const newBalance = parseFloat(inputValue);
 
             if (!isNaN(newBalance)) {
-                const oldBatener('click', (event) => {
-                let targetButton = event.target.closeslance = balance;
+                const oldBalance = balance; // Corrected variable name from oldBatener
                 balance = newBalance;
                 const amountChange = newBalance - oldBalance;
                 updateBalanceDisplay(amountChange, 'set');
