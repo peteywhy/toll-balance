@@ -8,146 +8,237 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Force html and body to fill the iframe and set background */
-        html {
-            height: 100%; /* Ensure html takes full height of its container */
-        }
-        body {
-            /* Remove default margin and padding from body */
+        /* Base styles to ensure body fills viewport and prevents main scroll */
+        html, body {
+            height: 100%; /* Important for full height */
             margin: 0;
             padding: 0;
-            /* Ensure body takes full height and width of html */
-            height: 100%;
-            width: 100%;
-            /* Consistent dark background */
-            background-color: #1a202c;
-            /* Flexbox for centering the content */
+            box-sizing: border-box;
+            background-color: #1a202c; /* Consistent dark background */
+            overflow: hidden; /* Prevent body scrolling */
+        }
+        body {
+            display: flex;
+            flex-direction: column; /* Stack children vertically */
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Main content area, takes available vertical space and centers the card */
+        .main-content-area {
+            flex-grow: 1; /* Allows this div to grow and take available space */
             display: flex;
             align-items: center; /* Center content vertically */
             justify-content: center; /* Center content horizontally */
-            font-family: 'Inter', sans-serif;
-            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            padding: 1rem; /* Padding around the app card */
+            overflow: hidden; /* Crucial to contain content without making body scroll */
         }
+
+        /* The actual app card, its height is constrained to fit within main-content-area */
+        .app-card {
+            background-color: #1f2937; /* gray-800 */
+            border: 1px solid #374151; /* gray-700 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-2xl */
+            width: 100%;
+            max-width: 28rem; /* max-w-md */
+            padding: 1rem; /* p-4 */
+            display: flex;
+            flex-direction: column; /* Stack elements inside the card vertically */
+            /* This height calculation is critical to ensure the card fits. */
+            /* 100% of parent minus its own padding (2rem total for p-4) */
+            height: calc(100% - 2rem);
+            /* On mobile, this will ensure the card tries to fit and its content overflows internally */
+            overflow-y: auto; /* Enable scrolling for the card's content if it's too tall */
+        }
+
         /* Custom styles for button hover effects and active states */
         .btn-toll, .btn-add, .btn-set {
             transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
         }
         .btn-toll:hover, .btn-add:hover, .btn-set:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Slightly darker shadow for dark mode */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
         .btn-toll:active, .btn-add:active, .btn-set:active {
             transform: translateY(0);
             box-shadow: none;
         }
-        /* Scrollable transaction history */
-        #transaction-history {
-            max-height: 250px; /* Limit height for scrollability on mobile */
-            overflow-y: auto; /* Enable vertical scrolling */
+
+        /* Tab bar styles */
+        .tab-bar {
+            flex-shrink: 0; /* Prevent tab bar from shrinking */
+            background-color: #111827; /* Darker gray for tab bar (gray-900 equivalent) */
+            border-top: 1px solid #374151; /* gray-700 */
+            padding: 0.75rem 1rem; /* py-3 px-4 */
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .tab-button {
+            flex: 1; /* Equal width buttons */
+            text-align: center;
+            padding: 0.5rem 1rem; /* py-2 px-4 */
+            border-radius: 0.5rem; /* rounded-lg */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 700; /* font-bold */
+            margin: 0 0.25rem; /* mx-1 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-lg */
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+        }
+        .tab-button:not(.active) {
+            background-color: #4b5563; /* gray-700 */
+            color: #d1d5db; /* gray-300 */
+        }
+
+        /* Ensure history list scrolls if needed within its container */
+        #transaction-history-list {
+            flex-grow: 1; /* Occupy remaining space in history view */
+            overflow-y: auto; /* Only this specific list scrolls */
             -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            padding-right: 0.5rem; /* Add some padding for the scrollbar */
+        }
+        /* Hide scrollbar for webkit browsers */
+        #transaction-history-list::-webkit-scrollbar {
+            width: 0; /* Hide scrollbar */
+            background: transparent; /* Make scrollbar transparent */
         }
     </style>
 </head>
 <body>
-    <div class="bg-gray-800 p-4 sm:p-8 rounded-xl shadow-2xl w-full max-w-md mx-auto border border-gray-700 max-h-[95vh] flex flex-col">
-        <!-- Balance Display -->
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-semibold text-gray-200 mb-2">Current Balance:</h1>
-            <p id="balance-display" class="text-6xl font-extrabold text-blue-400 tracking-tight">$0.00</p>
-        </div>
+    <div class="main-content-area">
+        <div class="app-card">
+            <!-- Tracker View -->
+            <div id="tracker-view" class="flex flex-col flex-grow">
+                <div class="text-center mb-6">
+                    <h1 class="text-2xl font-semibold text-gray-200 mb-2">Current Balance:</h1>
+                    <p id="balance-display" class="text-6xl font-extrabold text-blue-400 tracking-tight">$0.00</p>
+                </div>
 
-        <!-- Manual Balance Edit Section -->
-        <div class="mb-6 flex flex-col sm:flex-row items-center gap-3">
-            <input
-                type="number"
-                id="manual-balance-input"
-                class="flex-grow p-3 border border-gray-600 bg-gray-700 text-white rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm placeholder-gray-400"
-                placeholder="Enter new balance"
-                step="0.01"
-                min="0"
-            />
-            <button
-                id="set-balance-btn"
-                class="btn-set bg-blue-600 text-white py-3 px-6 rounded-lg text-lg font-bold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 w-full sm:w-auto"
-            >
-                Set Balance
-            </button>
-        </div>
+                <div class="mb-6 flex flex-col sm:flex-row items-center gap-3">
+                    <input
+                        type="number"
+                        id="manual-balance-input"
+                        class="flex-grow p-3 border border-gray-600 bg-gray-700 text-white rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm placeholder-gray-400"
+                        placeholder="Enter new balance"
+                        step="0.01"
+                        min="0"
+                    />
+                    <button
+                        id="set-balance-btn"
+                        class="btn-set bg-blue-600 text-white py-3 px-6 rounded-lg text-lg font-bold shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 w-full sm:w-auto"
+                    >
+                        Set Balance
+                    </button>
+                </div>
 
-        <!-- Toll Buttons -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-            <!-- Toll amount buttons with labels -->
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.50">
-                <span class="text-xs font-normal opacity-75 mb-1">CDE/HIP</span>
-                <span>-$0.50</span>
-            </button>
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.55">
-                <span class="text-xs font-normal opacity-75 mb-1">CDR-MPTO</span>
-                <span>-$0.55</span>
-            </button>
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.60">
-                <span class="text-xs font-normal opacity-75 mb-1">ATP-PAI</span>
-                <span>-$0.60</span>
-            </button>
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.75">
-                <span class="text-xs font-normal opacity-75 mb-1">CDR/MTPK</span>
-                <span>-$0.75</span>
-            </button>
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.90">
-                <span class="text-xs font-normal opacity-75 mb-1">MSO</span>
-                <span>-$0.90</span>
-            </button>
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.25">
-                <span class="text-xs font-normal opacity-75 mb-1">ATP/LAJ/CDR</span>
-                <span>-$1.25</span>
-            </button>
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.40">
-                <span class="text-xs font-normal opacity-75 mb-1">PAI</span>
-                <span>-$1.40</span>
-            </button>
-            <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.50">
-                <span class="text-xs font-normal opacity-75 mb-1">TIN</span>
-                <span>-$1.50</span>
-            </button>
-        </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.50">
+                        <span class="text-xs font-normal opacity-75 mb-1">CDE/HIP</span>
+                        <span>-$0.50</span>
+                    </button>
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.55">
+                        <span class="text-xs font-normal opacity-75 mb-1">CDR-MPTO</span>
+                        <span>-$0.55</span>
+                    </button>
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.60">
+                        <span class="text-xs font-normal opacity-75 mb-1">ATP-PAI</span>
+                        <span>-$0.60</span>
+                    </button>
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.75">
+                        <span class="text-xs font-normal opacity-75 mb-1">CDR/MTPK</span>
+                        <span>-$0.75</span>
+                    </button>
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.90">
+                        <span class="text-xs font-normal opacity-75 mb-1">MSO</span>
+                        <span>-$0.90</span>
+                    </button>
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.25">
+                        <span class="text-xs font-normal opacity-75 mb-1">ATP/LAJ/CDR</span>
+                        <span>-$1.25</span>
+                    </button>
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.40">
+                        <span class="text-xs font-normal opacity-75 mb-1">PAI</span>
+                        <span>-$1.40</span>
+                    </button>
+                    <button class="btn-toll bg-indigo-600 text-white py-3 px-2 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-1.50">
+                        <span class="text-xs font-normal opacity-75 mb-1">TIN</span>
+                        <span>-$1.50</span>
+                    </button>
+                </div>
 
-        <!-- Add Balance Button -->
-        <button id="add-balance-btn" class="btn-add w-full bg-green-600 text-white py-4 rounded-xl text-2xl font-bold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 mb-6">
-            Add $20.00
-        </button>
+                <button id="add-balance-btn" class="btn-add w-full bg-green-600 text-white py-4 rounded-xl text-2xl font-bold shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50">
+                    Add $20.00
+                </button>
+            </div>
 
-        <!-- Transaction History Section -->
-        <h2 class="text-xl font-semibold text-gray-200 mb-4 text-center">Transaction History</h2>
-        <div id="transaction-history" class="bg-gray-700 p-4 rounded-lg border border-gray-600 flex-grow">
-            <!-- Transaction items will be dynamically added here -->
-            <p id="no-transactions-message" class="text-gray-400 text-center text-sm">No transactions yet.</p>
+            <!-- History View (hidden by default) -->
+            <div id="history-view" class="hidden flex flex-col flex-grow">
+                <h2 class="text-xl font-semibold text-gray-200 mb-4 text-center">Transaction History</h2>
+                <div id="transaction-history-list" class="bg-gray-700 p-4 rounded-lg border border-gray-600 flex-grow">
+                    <p id="no-transactions-message" class="text-gray-400 text-center text-sm">No transactions yet.</p>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-bar">
+        <button id="show-tracker-btn" class="tab-button active">Tracker</button>
+        <button id="show-history-btn" class="tab-button">History</button>
     </div>
 
     <script>
         // Initialize balance and transactions from local storage
         let balance = parseFloat(localStorage.getItem('tollBalance')) || 0.00;
-        // Parse stored transactions or initialize an empty array
         let transactions = JSON.parse(localStorage.getItem('tollTransactions')) || [];
 
+        // DOM Elements
         const balanceDisplay = document.getElementById('balance-display');
         const addBalanceBtn = document.getElementById('add-balance-btn');
         const tollButtons = document.querySelectorAll('.btn-toll');
         const manualBalanceInput = document.getElementById('manual-balance-input');
         const setBalanceBtn = document.getElementById('set-balance-btn');
-        const transactionHistoryDiv = document.getElementById('transaction-history');
+        const transactionHistoryList = document.getElementById('transaction-history-list'); // Renamed for clarity
         const noTransactionsMessage = document.getElementById('no-transactions-message');
+        const trackerView = document.getElementById('tracker-view');
+        const historyView = document.getElementById('history-view');
+        const showTrackerTabBtn = document.getElementById('show-tracker-btn');
+        const showHistoryTabBtn = document.getElementById('show-history-btn');
 
+        /**
+         * Switches the active view between 'tracker' and 'history'.
+         * @param {string} viewName - 'tracker' or 'history'.
+         */
+        function switchView(viewName) {
+            if (viewName === 'tracker') {
+                trackerView.classList.remove('hidden');
+                historyView.classList.add('hidden');
+                showTrackerTabBtn.classList.add('active');
+                showHistoryTabBtn.classList.remove('active');
+            } else { // viewName === 'history'
+                historyView.classList.remove('hidden');
+                trackerView.classList.add('hidden');
+                showHistoryTabBtn.classList.add('active');
+                showTrackerTabBtn.classList.remove('active');
+                renderTransactionHistory(); // Re-render history whenever the tab is opened
+            }
+            // Ensure the main card's scroll position is reset when switching views
+            document.querySelector('.app-card').scrollTop = 0;
+        }
 
         /**
          * Updates the displayed balance and saves it to local storage.
          * Also calls functions to record and display transaction history.
          */
-        function updateBalanceDisplay(amountChange = 0, type = 'toll') {
+        function updateBalanceDisplay(amountChange = 0, type = 'initial') {
             balanceDisplay.textContent = `$${balance.toFixed(2)}`;
             localStorage.setItem('tollBalance', balance.toFixed(2));
             addTransaction(amountChange, balance, type); // Record the transaction
-            renderTransactionHistory(); // Re-render history after update
+            // History is rendered only when the history tab is active
         }
 
         /**
@@ -157,8 +248,8 @@
          * @param {string} type - 'toll', 'add', or 'set' for categorization.
          */
         function addTransaction(amount, balanceAfter, type) {
-            // Only add a transaction if there was an actual change or it's a 'set' operation
-            if (amount !== 0 || type === 'set') {
+            // Only add a transaction if it's not the initial load and there was a change, or it's a 'set'
+            if (type !== 'initial') {
                 const now = new Date();
                 transactions.unshift({ // Add to the beginning for reverse chronological order
                     id: Date.now() + Math.random(), // Unique ID for deletion
@@ -179,18 +270,17 @@
          * Renders the transaction history list in the UI.
          */
         function renderTransactionHistory() {
-            transactionHistoryDiv.innerHTML = ''; // Clear existing entries
+            transactionHistoryList.innerHTML = ''; // Clear existing entries
 
             if (transactions.length === 0) {
                 noTransactionsMessage.style.display = 'block'; // Show "No transactions yet."
-                transactionHistoryDiv.appendChild(noTransactionsMessage);
+                transactionHistoryList.appendChild(noTransactionsMessage);
                 return;
             } else {
-                 noTransactionsMessage.style.display = 'none'; // Hide if there are transactions
+                noTransactionsMessage.style.display = 'none'; // Hide if there are transactions
             }
 
-
-            transactions.forEach((transaction, index) => {
+            transactions.forEach((transaction) => {
                 const transactionItem = document.createElement('div');
                 transactionItem.className = 'flex items-center justify-between bg-gray-600 p-2 rounded-md mb-2 last:mb-0 text-sm';
                 transactionItem.setAttribute('data-id', transaction.id); // Set data-id for deletion
@@ -213,13 +303,12 @@
                     </div>
                     <button class="delete-transaction-btn bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded ml-2">Delete</button>
                 `;
-                transactionHistoryDiv.appendChild(transactionItem);
+                transactionHistoryList.appendChild(transactionItem);
             });
 
             // Attach event listeners to new delete buttons
             document.querySelectorAll('.delete-transaction-btn').forEach(button => {
                 button.addEventListener('click', (event) => {
-                    // Find the parent transaction item to get its ID
                     const transactionElement = event.target.closest('[data-id]');
                     if (transactionElement) {
                         const transactionIdToDelete = parseFloat(transactionElement.dataset.id);
@@ -232,27 +321,25 @@
         /**
          * Deletes a transaction by its ID and re-renders the history.
          * NOTE: Deleting a transaction from history DOES NOT retroactively change the current balance.
-         * It only removes the log entry. If you need to re-calculate the balance,
-         * a more complex system (e.g., replaying all transactions from a base) would be needed.
+         * It only removes the log entry.
          * @param {number} id - The unique ID of the transaction to delete.
          */
         function deleteTransaction(id) {
             const initialLength = transactions.length;
             transactions = transactions.filter(t => t.id !== id);
 
-            if (transactions.length < initialLength) { // If a transaction was actually removed
+            if (transactions.length < initialLength) {
                 localStorage.setItem('tollTransactions', JSON.stringify(transactions));
                 renderTransactionHistory(); // Re-render the updated history
-                // Optionally, if the deleted item was the *most recent* one,
-                // you might want to recalculate the current balance based on the new last transaction.
-                // For simplicity, we're not doing a full recalculation here.
             }
         }
 
-        // Initialize display and history on page load
-        updateBalanceDisplay(0, 'initial'); // 'initial' type to ensure first state is logged if needed
+        // --- Initial Setup and Event Listeners ---
+        // Initial display of balance and ensure tracker view is active
+        updateBalanceDisplay(0, 'initial'); // 'initial' type prevents adding a transaction on first load
+        switchView('tracker'); // Start on the Tracker tab
 
-        // Event listeners for balance changes
+        // Event listeners for balance modification buttons
         addBalanceBtn.addEventListener('click', () => {
             const amount = 20.00;
             balance += amount;
@@ -260,8 +347,7 @@
         });
 
         tollButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                let targetButton = event.target.closest('.btn-toll');
+            button.addEventList('.btn-toll');
                 if (targetButton) {
                     const amount = parseFloat(targetButton.dataset.amount);
                     balance += amount;
@@ -275,9 +361,9 @@
             const newBalance = parseFloat(inputValue);
 
             if (!isNaN(newBalance)) {
-                const oldBalance = balance;
+                const oldBatener('click', (event) => {
+                let targetButton = event.target.closeslance = balance;
                 balance = newBalance;
-                // Calculate the 'amount' for the transaction as the difference
                 const amountChange = newBalance - oldBalance;
                 updateBalanceDisplay(amountChange, 'set');
                 manualBalanceInput.value = '';
@@ -285,6 +371,10 @@
                 console.error("Invalid balance entered. Please enter a valid number.");
             }
         });
+
+        // Event listeners for tab buttons
+        showTrackerTabBtn.addEventListener('click', () => switchView('tracker'));
+        showHistoryTabBtn.addEventListener('click', () => switchView('history'));
     </script>
 </body>
 </html>
