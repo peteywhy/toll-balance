@@ -237,6 +237,16 @@
         function updateBalanceDisplay(amountChange = 0, type = 'initial') {
             balanceDisplay.textContent = `$${balance.toFixed(2)}`;
             localStorage.setItem('tollBalance', balance.toFixed(2));
+
+            // Conditional coloring for the balance display
+            if (balance <= 4.00) {
+                balanceDisplay.classList.remove('text-blue-400');
+                balanceDisplay.classList.add('text-red-500');
+            } else {
+                balanceDisplay.classList.remove('text-red-500');
+                balanceDisplay.classList.add('text-blue-400');
+            }
+
             addTransaction(amountChange, balance, type); // Record the transaction
             // History is rendered only when the history tab is active
         }
