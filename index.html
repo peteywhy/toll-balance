@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="./favicon.png" type="image/png">
-    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-    <link rel="manifest" href="./manifest.json">
     <title>Toll Road Balance Tracker</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,8 +29,8 @@
             display: flex;
             align-items: center; /* Center content vertically */
             justify-content: center; /* Center content horizontally */
-            /* Removed padding here as the app-card will handle internal spacing */
             overflow: hidden; /* Crucial to contain content without making body scroll */
+            padding: 0.5rem; /* Add a little padding around the card itself within the main content area */
         }
 
         /* The actual app card, its height is constrained to fit within main-content-area */
@@ -44,25 +41,24 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-2xl */
             width: 100%;
             max-width: 28rem; /* max-w-md */
-            /* Reduced padding to reclaim space */
-            padding: 0.75rem; /* Reduced from 1rem (p-4) to p-3 for more compact look */
+            /* Reduced padding to reclaim space inside the card */
+            padding: 0.5rem; /* p-2 */
             display: flex;
             flex-direction: column; /* Stack elements inside the card vertically */
-            /* Let the height be determined by content, but allow stretching if space permits */
-            /* Ensure content fits by setting a max-height relative to viewport height */
-            max-height: calc(100vh - 5rem); /* Adjusted calculation: 100vh - (tab bar height + some margin) */
-            overflow-y: hidden; /* Prevent scrolling for the main card itself */
+            /* Max height allows it to grow but not exceed parent (main-content-area) height */
+            max-height: 100%; /* Changed from fixed calc(100% - 1rem) for better flexibility */
+            overflow-y: auto; /* Allow the app card itself to scroll if its content overflows */
         }
 
         /* Custom styles for button hover effects and active states */
-        .btn-toll, .btn-add, .btn-set {
+        .btn-toll, .btn-add, .btn-set, .btn-clear-data {
             transition: transform 0.1s ease-in-out, background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
         }
-        .btn-toll:hover, .btn-add:hover, .btn-set:hover {
+        .btn-toll:hover, .btn-add:hover, .btn-set:hover, .btn-clear-data:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
-        .btn-toll:active, .btn-add:active, .btn-set:active {
+        .btn-toll:active, .btn-add:active, .btn-set:active, .btn-clear-data:active {
             transform: translateY(0);
             box-shadow: none;
         }
@@ -103,6 +99,7 @@
             overflow-y: auto; /* Only this specific list scrolls */
             -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
             padding-right: 0.5rem; /* Add some padding for the scrollbar */
+            min-height: 0; /* Crucial for flex items with overflow-y: auto */
         }
         /* Hide scrollbar for webkit browsers */
         #transaction-history-list::-webkit-scrollbar {
@@ -116,12 +113,12 @@
         <div class="app-card">
             <!-- Tracker View -->
             <div id="tracker-view" class="flex flex-col flex-grow justify-around h-full">
-                <div class="text-center mb-2 mt-2"> <!-- Adjusted margins -->
-                    <h1 class="text-2xl font-semibold text-gray-200 mb-1">Current Balance:</h1> <!-- Adjusted margins -->
+                <div class="text-center mb-1 mt-1"> <!-- Adjusted margins -->
+                    <h1 class="text-2xl font-semibold text-gray-200 mb-0.5">Current Balance:</h1> <!-- Adjusted margins -->
                     <p id="balance-display" class="text-6xl font-extrabold text-blue-400 tracking-tight">$0.00</p>
                 </div>
 
-                <div class="mb-4 flex flex-col sm:flex-row items-center gap-2 px-1"> <!-- Adjusted margins and gap, added horizontal padding -->
+                <div class="mb-3 flex flex-col sm:flex-row items-center gap-2 px-1"> <!-- Adjusted margins and gap, added horizontal padding -->
                     <input
                         type="number"
                         id="manual-balance-input"
@@ -138,7 +135,7 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 px-1"> <!-- Adjusted gap and margins, added horizontal padding -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3 px-1"> <!-- Adjusted gap and margins, added horizontal padding -->
                     <button class="btn-toll bg-indigo-600 text-white py-2 px-1 rounded-xl text-lg font-bold shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 flex flex-col items-center justify-center" data-amount="-0.50">
                         <span class="text-xs font-normal opacity-75 mb-0.5">CDE/HIP</span> <!-- Reduced margin-bottom -->
                         <span>-$0.50</span>
@@ -178,17 +175,18 @@
                 </button>
             </div>
 
-            <!-- History View (hidden by default) -->
             <div id="history-view" class="hidden flex flex-col flex-grow">
                 <h2 class="text-xl font-semibold text-gray-200 mb-4 text-center">Transaction History</h2>
                 <div id="transaction-history-list" class="bg-gray-700 p-4 rounded-lg border border-gray-600 flex-grow">
                     <p id="no-transactions-message" class="text-gray-400 text-center text-sm">No transactions yet.</p>
                 </div>
+                <button id="clear-data-btn" class="btn-clear-data bg-red-700 text-white py-3 mt-4 rounded-xl text-lg font-bold shadow-lg hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-opacity-50">
+                    Clear All Data
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Tab Navigation -->
     <div class="tab-bar">
         <button id="show-tracker-btn" class="tab-button active">Tracker</button>
         <button id="show-history-btn" class="tab-button">History</button>
@@ -205,12 +203,13 @@
         const tollButtons = document.querySelectorAll('.btn-toll');
         const manualBalanceInput = document.getElementById('manual-balance-input');
         const setBalanceBtn = document.getElementById('set-balance-btn');
-        const transactionHistoryList = document.getElementById('transaction-history-list'); // Renamed for clarity
+        const transactionHistoryList = document.getElementById('transaction-history-list');
         const noTransactionsMessage = document.getElementById('no-transactions-message');
         const trackerView = document.getElementById('tracker-view');
         const historyView = document.getElementById('history-view');
         const showTrackerTabBtn = document.getElementById('show-tracker-btn');
         const showHistoryTabBtn = document.getElementById('show-history-btn');
+        const clearDataBtn = document.getElementById('clear-data-btn');
 
         /**
          * Switches the active view between 'tracker' and 'history'.
@@ -264,7 +263,7 @@
             // Only add a transaction if it's not the initial load and there was a change, or it's a 'set'
             if (type !== 'initial') {
                 const now = new Date();
-                transactions.unshift({ // Add to the beginning for reverse chronological order
+                transactions.push({ // Changed from unshift to push for oldest at top
                     id: Date.now() + Math.random(), // Unique ID for deletion
                     timestamp: now.toISOString(), // ISO string for easy storage and parsing
                     amount: amount,
@@ -272,8 +271,9 @@
                     type: type // Store type for display if needed later
                 });
                 // Keep only the latest 50 transactions to prevent history from getting too long
+                // Now using shift() to remove the oldest item when pushing to end
                 if (transactions.length > 50) {
-                    transactions.pop();
+                    transactions.shift();
                 }
                 localStorage.setItem('tollTransactions', JSON.stringify(transactions));
             }
@@ -293,17 +293,20 @@
                 noTransactionsMessage.style.display = 'none'; // Hide if there are transactions
             }
 
+            // Iterate through transactions to display them (they are already ordered oldest to newest)
             transactions.forEach((transaction) => {
                 const transactionItem = document.createElement('div');
                 transactionItem.className = 'flex items-center justify-between bg-gray-600 p-2 rounded-md mb-2 last:mb-0 text-sm';
                 transactionItem.setAttribute('data-id', transaction.id); // Set data-id for deletion
 
                 const date = new Date(transaction.timestamp);
-                const dateTime = date.toLocaleString('en-US', {
-                    year: 'numeric', month: 'numeric', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit',
-                    hourCycle: 'h23' // Changed to 24-hour format
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+                const year = date.getFullYear();
+                const time = date.toLocaleString('en-US', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
                 });
+                const dateTime = `${day}-${month}-${year} ${time}`; // DD-MM-YYYY HH:MM:SS format
 
                 const amountSign = transaction.amount < 0 ? '-' : '+';
                 const amountColor = transaction.amount < 0 ? 'text-red-300' : 'text-green-300';
@@ -348,6 +351,42 @@
             }
         }
 
+        /**
+         * Clears all stored balance and transaction data from local storage,
+         * resets the app state, and updates the UI.
+         */
+        function clearAllData() {
+            // Replaced confirm() with a custom modal/message for Canvas compliance
+            const confirmClear = document.createElement('div');
+            confirmClear.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50';
+            confirmClear.innerHTML = `
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl text-center max-w-xs mx-auto">
+                    <p class="text-white text-lg mb-4">Are you sure you want to clear ALL balance and transaction history data? This action cannot be undone.</p>
+                    <div class="flex justify-center gap-4">
+                        <button id="confirm-yes" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Yes, Clear</button>
+                        <button id="confirm-no" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">No, Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmClear);
+
+            document.getElementById('confirm-yes').addEventListener('click', () => {
+                localStorage.removeItem('tollBalance');
+                localStorage.removeItem('tollTransactions');
+                balance = 0.00;
+                transactions = [];
+                updateBalanceDisplay(0, 'initial');
+                renderTransactionHistory();
+                switchView('tracker');
+                document.body.removeChild(confirmClear); // Remove the modal
+            });
+
+            document.getElementById('confirm-no').addEventListener('click', () => {
+                document.body.removeChild(confirmClear); // Remove the modal
+            });
+        }
+
+
         // --- Initial Setup and Event Listeners ---
         // Initial display of balance and ensure tracker view is active
         updateBalanceDisplay(0, 'initial'); // 'initial' type prevents adding a transaction on first load
@@ -389,6 +428,8 @@
         // Event listeners for tab buttons
         showTrackerTabBtn.addEventListener('click', () => switchView('tracker'));
         showHistoryTabBtn.addEventListener('click', () => switchView('history'));
+        // Event listener for Clear Data button
+        clearDataBtn.addEventListener('click', clearAllData);
     </script>
 </body>
 </html>
